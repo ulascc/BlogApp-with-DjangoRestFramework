@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Uygulaması</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  {% include 'partials/_navbar.html' %}
+
+
+  <div class="container mt-5">
+    <h1 class="mb-4">Blog Uygulaması Anasayfası</h1>
+    <div class="form-group">
+      <input type="text" id="searchInput" class="form-control" placeholder="Arama yapın...">
+      <button id="searchButton" class="btn btn-primary">Ara</button>
+    </div>
+    <div class="row" id="blogContainer">
+      <!-- Blog verileri buraya eklenecek -->
+    </div>
+  </div>
+
+  <!-- jQuery ve Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    // Sayfa yüklendiğinde ve arama yapıldığında verileri almak için AJAX kullanacağız
+    $(document).ready(function() {
+      function fetchBlogs(searchTerm) {
+        $.ajax({
+          url: 'http://127.0.0.1:8000/api/home/allPost/', // API adresi
+          method: 'GET',
+          dataType: 'json',
+          data: {
+            search: searchTerm // Arama terimini isteğe ekleyin
+          },
+          success: function(response) {
+            // API'den gelen verileri burada işleyin ve ekrana ekleyin
+            if (response && response.data.length > 0) {
+              var blogContainer = $('#blogContainer');
+              var blogHTML = '';
+  
+              // Verileri döngüyle gezip listeleyin
+              response.data.forEach(function(blog) {
+                blogHTML += '<div class="card mb-3">';
+                blogHTML += '<div class="card-body">';
+                blogHTML += '<h5 class="card-title">' + blog.title + '</h5>';
+                blogHTML += '<p class="card-text">' + blog.blog_text + '</p>';
+                blogHTML += '</div>';
+                blogHTML += '</div>';
+              });
+  
+              blogContainer.html(blogHTML);
+            } else {
+              // API'den herhangi bir veri gelmezse burası çalışır
+              blogContainer.html('<p>Aradığınız kelimeyi içeren blog gönderisi bulunmamaktadır.</p>');
+            }
+          },
+          error: function(xhr, status, error) {
+            // Hata durumunda burası çalışır
+            console.error('Hata:', error);
+          }
+        });
+      }
+  
+      // Sayfa yüklendiğinde tüm blogları almak için AJAX isteği gönderin
+      fetchBlogs('');
+  
+      // Arama butonuna tıklandığında arama yapmak için AJAX isteği gönderin
+      $('#searchButton').click(function() {
+        var searchTerm = $('#searchInput').val();
+        fetchBlogs(searchTerm);
+      });
+    });
+  </script>
+  
+</body>
+</html>

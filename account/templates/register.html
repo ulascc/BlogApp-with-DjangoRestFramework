@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ekranı</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* CSS kodlarını buraya ekleyebilirsiniz */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Kayıt Formu</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="inputName">İsim:</label>
+                <input type="text" class="form-control" id="inputName" required>
+            </div>
+            <div class="form-group">
+                <label for="inputSurname">Soyisim:</label>
+                <input type="text" class="form-control" id="inputSurname" required>
+            </div>
+            <div class="form-group">
+                <label for="inputUsername">Kullanıcı Adı:</label>
+                <input type="text" class="form-control" id="inputUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="inputPassword">Şifre:</label>
+                <input type="password" class="form-control" id="inputPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+        </form>
+        <div id="message" class="mt-3"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+    $('#registerForm').submit(function (event) {
+        event.preventDefault();
+
+        var formData = {
+            'first_name': $('#inputName').val(),
+            'last_name': $('#inputSurname').val(),
+            'username': $('#inputUsername').val(),
+            'password': $('#inputPassword').val()
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: 'http://127.0.0.1:8000/api/account/register/', // API URL'sini buraya ekleyin
+            data: formData, // JSON.stringify(formData) kullanma
+            dataType: 'json', // Yanıt olarak JSON beklediğimizi belirtelim
+            success: function (response) {
+                $('#message').html('<div class="alert alert-success">' + response.message + '</div>');
+                setTimeout(function() {
+                    window.location.replace('http://127.0.0.1:8000/api/account/loginPage');
+                }, 1000);
+            },
+            error: function (xhr, status, error) {
+                var errorMessage = xhr.responseJSON.message; // Hatayı buradan alalım
+                $('#message').html('<div class="alert alert-danger">' + errorMessage + '</div>');
+            }
+        });
+    });
+});
+
+    </script>
+</body>
+
+</html>

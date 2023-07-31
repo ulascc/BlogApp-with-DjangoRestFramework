@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bloglarım</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Bloglarım</h2>
+
+        <!-- Yeni Blog Oluşturma Bölümü -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Yeni Blog Oluştur</h5>
+                <form id="create-blog-form">
+                    <div class="form-group">
+                        <label for="blogTitle">Blog Başlığı:</label>
+                        <input type="text" class="form-control" id="blogTitle" name="blogTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blogText">Blog Metni:</label>
+                        <textarea class="form-control" id="blogText" name="blogText" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Blog Oluştur</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Blog Listesi -->
+        <div id="blogList">
+            <!-- Blogların AJAX ile doldurulacağı alan -->
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Sayfa yüklendiğinde token'ı kontrol et ve gerekli yerlere ekle
+        var token = localStorage.getItem('token');
+        if (token) {
+            $.ajaxSetup({
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+        }
+
+        // Sayfa yüklendiğinde blog listesini AJAX ile doldur
+        $(document).ready(function() {
+            getBlogs();
+        });
+
+        // Blogları AJAX ile al ve listele
+        function getBlogs() {
+            $.ajax({
+                url: 'http://127.0.0.1:8000/api/home/blog/', // BlogView API'nizin URL'si
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    // Blog listesi alındığında doldur
+                    var blogList = $('#blogList');
+                    blogList.empty(); // Önceki içeriği temizle
+
+                    data.data.forEach(function(blog) {
+                        var blogItem = `
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">${blog.title}</h5>
+                                    <p class="card-text">${blog.blog_text}</p>
+                                    <button class="btn btn-primary" onclick="editBlog(${blog.uid})">Güncelle</button>
+                                    <button class="btn btn-danger" onclick="deleteBlog(${blog.uid})">Sil</button>
+                                </div>
+                            </div>
+                        `;
+                        blogList.append(blogItem);
+                    });
+                },
+                error: function(error) {
+                    console.log('Blog listesi alınırken hata:', error);
+                }
+            });
+        }
+
+        // Blog güncelleme sayfasına yönlendir
+        function editBlog(blogId) {
+            window.location.href = `edit_blog.html?id=${blogId}`;
+        }
+
+        // Yeni blog oluşturulduğunda AJAX ile API'ye gönder
+        $('#create-blog-form').submit(function(event) {
+            event.preventDefault();
+            createBlog();
+        });
+
+        // Yeni blog oluşturma işlemini AJAX ile yap
+        function createBlog() {
+        var blogTitle = $('#blogTitle').val();
+        var blogText = $('#blogText').val();
+        $.ajax({
+            url: 'http://127.0.0.1:8000/api/home/blog/', // BlogView API'nizin URL'si
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                title: blogTitle,
+                blog_text: blogText
+            },
+            success: function(data) {
+                // Blog oluşturma başarılıysa, blog listesini tekrar al ve yenile
+                getBlogs();
+                // Formu temizle
+                $('#create-blog-form')[0].reset();
+            },
+            error: function(error) {
+                console.log('Blog oluşturulurken hata:', error);
+                // Sunucudan dönen hatayı konsola yazdır
+                console.log(error.responseJSON); // Sunucu tarafından dönen hata mesajı
+            }
+        });
+    }
+        // Blog silme işlemini AJAX ile yap
+        function deleteBlog(blogId) {
+        if (confirm('Blogu silmek istediğinize emin misiniz?')) {
+            $.ajax({
+                url: 'http://127.0.0.1:8000/api/home/blog/' + blogId + '/', // BlogView API'nizin URL'si ve blog ID'si
+                type: 'DELETE',
+                dataType: 'json',
+                success: function(data) {
+                    // Silme başarılıysa blog listesini tekrar al ve yenile
+                    getBlogs();
+                },
+                error: function(error) {
+                    console.log('Blog silinirken hata:', error);
+                }
+            });
+        }
+    }
+
+    
+    </script>
+</body>
+</html>
